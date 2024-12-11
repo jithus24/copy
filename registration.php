@@ -189,8 +189,19 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-$sql = "SELECT * FROM users";
-$result = $conn->query($sql);
+$username = $_COOKIE['username'];
+$sql = "SELECT * FROM users WHERE username = ?";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param('s', $username);
+$stmt->execute();
+$result = $stmt->get_result();
+
+if ($result->num_rows > 0) {
+    $user = $result->fetch_assoc();
+} else {
+    echo "No user found.";
+    exit;
+}
 ?>
 
 <!DOCTYPE html>
@@ -199,28 +210,13 @@ $result = $conn->query($sql);
     <title>User Information</title>
 </head>
 <body>
-    <h2>Welcome, <?php echo htmlspecialchars($_COOKIE['username']); ?>!</h2>
-    <h3>User Information</h3>
-    <table border="1">
-        <tr>
-            <th>First Name</th>
-            <th>Last Name</th>
-            <th>Date of Birth</th>
-            <th>Email</th>
-            <th>Mobile</th>
-            <th>Gender</th>
-        </tr>
-        <?php while ($row = $result->fetch_assoc()): ?>
-        <tr>
-            <td><?php echo htmlspecialchars($row['fname']); ?></td>
-            <td><?php echo htmlspecialchars($row['lname']); ?></td>
-            <td><?php echo htmlspecialchars($row['dob']); ?></td>
-            <td><?php echo htmlspecialchars($row['email']); ?></td>
-            <td><?php echo htmlspecialchars($row['mobile']); ?></td>
-            <td><?php echo htmlspecialchars($row['gender']); ?></td>
-        </tr>
-        <?php endwhile; ?>
-    </table>
+    <h2>Welcome, <?php echo htmlspecialchars($user['fname'] . ' ' . $user['lname']); ?>!</h2>
+    <h3>Your Information</h3>
+    <p><strong>First Name:</strong> <?php echo htmlspecialchars($user['fname']); ?></p>
+    <p><strong>Last Name:</strong> <?php echo htmlspecialchars($user['lname']); ?></p>
+    <p><strong>Date of Birth:</strong> <?php echo htmlspecialchars($user['dob']); ?></p>
+    <p><strong>Email:</strong> <?php echo htmlspecialchars($user['email']); ?></p>
+    <p><strong>Mobile:</strong> <?php echo htmlspecialchars($user['mobile']); ?></p>
+    <p><strong>Gender:</strong> <?php echo htmlspecialchars($user['gender']); ?></p>
 </body>
 </html>
-```
